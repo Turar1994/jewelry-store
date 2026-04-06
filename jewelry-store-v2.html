@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maison d'Or — Ювелирный магазин</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<style>
+:root {
+  --cream:   #FAF7F2;
+  --parchment: #F2EDE4;
+  --gold:    #B8860B;
+  --gold-lt: #D4AF37;
+  --gold-pale: #F5EDD0;
+  --gold-deep: #8B6508;
+  --ink:     #1A1208;
+  --muted:   #7A6845;
+  --border:  #E0D5C0;
+  --border-lt: #EDE7DA;
+  --surface: #FFFFFF;
+  --surface2: #FDF9F3;
+  --red:     #C0392B;
+  --green:   #27AE60;
+  --shadow:  0 1px 3px rgba(26,18,8,.06), 0 4px 16px rgba(26,18,8,.08);
+  --shadow-lg: 0 8px 40px rgba(26,18,8,.12);
+  --radius:  12px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Jost',sans-serif;background:var(--cream);color:var(--ink);font-size:14px;line-height:1.6}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+/* ─── LOGIN SCREEN ─── */
+.login-screen {
+  position:fixed;inset:0;background:var(--ink);display:flex;align-items:center;justify-content:center;z-index:1000;
+  background-image: repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(184,134,11,.04) 40px, rgba(184,134,11,.04) 41px),
+                    repeating-linear-gradient(-45deg, transparent, transparent 40px, rgba(184,134,11,.04) 40px, rgba(184,134,11,.04) 41px);
+}
+.login-box {
+  background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:52px 48px;width:100%;max-width:420px;
+  box-shadow:0 32px 80px rgba(0,0,0,.4);text-align:center;
+  animation:loginReveal .6s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes loginReveal{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+.login-gem{font-size:40px;margin-bottom:16px;display:block;animation:spin 8s linear infinite}
+@keyframes spin{from{filter:hue-rotate(0deg)}to{filter:hue-rotate(360deg)}}
+.login-brand{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--ink);letter-spacing:.08em;margin-bottom:4px}
+.login-sub{font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:36px}
+.login-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;font-size:14px;font-family:'Jost',sans-serif;color:var(--ink);outline:none;transition:border-color .2s;margin-bottom:12px}
+.login-input:focus{border-color:var(--gold-lt)}
+.login-btn{width:100%;background:var(--gold);color:#fff;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:600;font-family:'Jost',sans-serif;cursor:pointer;letter-spacing:.06em;transition:background .2s;margin-top:4px}
+.login-btn:hover{background:var(--gold-deep)}
+.login-err{color:var(--red);font-size:12px;margin-top:8px;min-height:18px}
+
+/* ─── APP SHELL ─── */
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* ─── SIDEBAR ─── */
+.sidebar{
+  width:240px;flex-shrink:0;
+  background:var(--ink);
+  display:flex;flex-direction:column;
+  position:relative;overflow:hidden;
+}
+.sidebar::before{
+  content:'';position:absolute;bottom:-60px;right:-60px;width:200px;height:200px;
+  border-radius:50%;background:radial-gradient(circle,rgba(184,134,11,.15) 0%,transparent 70%);
+  pointer-events:none;
+}
+.sidebar-logo{padding:28px 24px 20px;border-bottom:1px solid rgba(255,255,255,.07)}
+.logo-jewel{font-size:11px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--gold-lt);margin-bottom:4px}
+.logo-name{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;color:#FAF7F2;letter-spacing:.06em}
+.logo-sync{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:10px;color:rgba(255,255,255,.3);letter-spacing:.05em}
+.sync-dot{width:5px;height:5px;border-radius:50%;background:#C0392B;flex-shrink:0;transition:background .4s}
+.sync-dot.ok{background:var(--green)}
+.nav{flex:1;padding:16px 12px;overflow-y:auto}
+.nav-sec{font-size:9px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.25);padding:14px 12px 6px}
+.nav-btn{
+  display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:8px;
+  cursor:pointer;font-size:13px;font-weight:400;color:rgba(255,255,255,.5);
+  border:none;background:none;width:100%;text-align:left;font-family:'Jost',sans-serif;
+  transition:all .15s;letter-spacing:.02em;
+}
+.nav-btn:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.85)}
+.nav-btn.active{background:rgba(184,134,11,.18);color:var(--gold-lt);font-weight:500}
+.nav-btn .ico{width:16px;text-align:center;font-size:14px;opacity:.85}
+.sidebar-user{
+  padding:16px 20px;border-top:1px solid rgba(255,255,255,.07);
+  display:flex;align-items:center;gap:12px;cursor:pointer;transition:background .15s;
+}
+.sidebar-user:hover{background:rgba(255,255,255,.04)}
+.user-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-deep));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:#fff;flex-shrink:0;font-family:'Cormorant Garamond',serif}
+.user-name{font-size:13px;color:rgba(255,255,255,.8);font-weight:500;line-height:1.3}
+.user-role{font-size:10px;color:var(--gold-lt);letter-spacing:.08em;text-transform:uppercase}
+
+/* ─── MAIN ─── */
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column;min-width:0;background:var(--cream)}
+
+/* ─── TOPBAR ─── */
+.topbar{
+  padding:16px 28px;border-bottom:1px solid var(--border-lt);
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--surface);position:sticky;top:0;z-index:10;
+  box-shadow:0 1px 0 var(--border-lt);
+}
+.topbar-left{display:flex;align-items:baseline;gap:10px}
+.topbar-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--ink);letter-spacing:.02em}
+.topbar-sub{font-size:11px;color:var(--muted);letter-spacing:.06em}
+.topbar-date{font-size:12px;color:var(--muted);letter-spacing:.04em}
+
+/* ─── CONTENT ─── */
+.content{padding:24px 28px;flex:1}
+.page{display:none}.page.active{display:block;animation:fadeUp .3s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ─── BUTTONS ─── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;font-family:'Jost',sans-serif;transition:all .15s;letter-spacing:.02em}
+.btn-gold{background:var(--gold);color:#fff}.btn-gold:hover{background:var(--gold-deep)}
+.btn-outline{background:transparent;color:var(--gold);border:1.5px solid var(--gold)}.btn-outline:hover{background:var(--gold-pale)}
+.btn-ghost{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}.btn-ghost:hover{background:var(--parchment);color:var(--ink)}
+.btn-danger{background:rgba(192,57,43,.08);color:var(--red);border:1px solid rgba(192,57,43,.2)}.btn-danger:hover{background:rgba(192,57,43,.15)}
+.btn-sm{padding:6px 12px;font-size:12px}.btn-xs{padding:4px 9px;font-size:11px}
+
+/* ─── STATS ─── */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.stat-card{
+  background:var(--surface);border:1px solid var(--border-lt);border-radius:var(--radius);padding:20px;
+  position:relative;overflow:hidden;
+  box-shadow:var(--shadow);transition:transform .2s;
+}
+.stat-card:hover{transform:translateY(-2px)}
+.stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--gold-lt))}
+.stat-lbl{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.stat-val{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;color:var(--ink);line-height:1}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:6px}
+
+/* ─── CARDS ─── */
+.card{background:var(--surface);border:1px solid var(--border-lt);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);margin-bottom:18px}
+.card-title{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:400;color:var(--ink);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;letter-spacing:.02em}
+.card-title span{font-family:'Jost',sans-serif;font-size:11px;color:var(--muted)}
+
+/* ─── TABLE ─── */
+.tbl-wrap{border:1px solid var(--border-lt);border-radius:var(--radius);overflow:hidden;overflow-x:auto;box-shadow:var(--shadow)}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:600px}
+thead th{background:var(--parchment);padding:11px 16px;text-align:left;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--border-lt);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--surface2)}
+tbody td{padding:11px 16px;color:var(--ink);vertical-align:middle}
+
+/* ─── FORMS ─── */
+.input{
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  padding:10px 14px;font-size:13px;color:var(--ink);font-family:'Jost',sans-serif;
+  width:100%;outline:none;transition:border-color .2s,box-shadow .2s;
+}
+.input:focus{border-color:var(--gold-lt);box-shadow:0 0 0 3px rgba(212,175,55,.1)}
+.input::placeholder{color:#C4B896}
+select.input option{background:var(--surface)}
+.fg label{display:block;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.search-bar{display:flex;gap:10px;margin-bottom:18px}.search-bar .input{flex:1}
+
+/* ─── FILTER CHIPS ─── */
+.filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;align-items:center}
+.chip{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);font-family:'Jost',sans-serif;transition:all .15s;letter-spacing:.02em}
+.chip:hover{border-color:var(--gold-lt);color:var(--gold)}
+.chip.active{background:var(--gold-pale);border-color:var(--gold);color:var(--gold-deep);font-weight:600}
+.chip-sep{width:1px;height:20px;background:var(--border);display:inline-block;margin:0 2px}
+
+/* ─── BADGES ─── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;letter-spacing:.03em}
+.badge-gold{background:linear-gradient(135deg,#FFF8E7,#FFF0C0);color:var(--gold-deep);border:1px solid #E8D080}
+.badge-silver{background:linear-gradient(135deg,#F5F5F5,#E8E8E8);color:#555;border:1px solid #CCC}
+.badge-available{background:#EBF7EF;color:#1E8449;border:1px solid #ABEBC6}
+.badge-sold{background:#F9F9F9;color:#999;border:1px solid #DDD}
+.purity{background:var(--gold-pale);color:var(--gold-deep);border:1px solid #E8D080;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;font-family:'Jost',sans-serif}
+
+/* ─── MODAL ─── */
+.overlay{position:fixed;inset:0;background:rgba(26,18,8,.5);backdrop-filter:blur(4px);z-index:500;display:none;align-items:center;justify-content:center;padding:16px}
+.overlay.open{display:flex;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:slideUp .25s cubic-bezier(.2,.8,.2,1)}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+.modal.wide{max-width:660px}
+.modal-hd{padding:22px 24px 0;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-lt);padding-bottom:16px}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:400;color:var(--ink);letter-spacing:.02em}
+.modal-body{padding:20px 24px;display:flex;flex-direction:column;gap:14px}
+.modal-ft{padding:0 24px 20px;display:flex;justify-content:flex-end;gap:8px}
+.close-x{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:2px;line-height:1;transition:color .15s}.close-x:hover{color:var(--ink)}
+
+/* ─── TOAST ─── */
+.toast{position:fixed;bottom:24px;right:24px;padding:11px 20px;border-radius:10px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;font-family:'Jost',sans-serif;letter-spacing:.02em;box-shadow:var(--shadow-lg)}
+.toast.success{background:var(--ink);color:var(--gold-lt)}.toast.error{background:#C0392B;color:#fff}.toast.info{background:var(--gold);color:#fff}
+
+/* ─── PRICE CALC BOX ─── */
+.calc-box{background:linear-gradient(135deg,var(--gold-pale),#FDF8E8);border:1px solid #E8D080;border-radius:10px;padding:14px 16px}
+.calc-row{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;color:var(--muted)}
+.calc-row.total{font-size:15px;font-weight:600;color:var(--gold-deep);border-top:1px solid #E8D080;padding-top:10px;margin-top:6px;font-family:'Cormorant Garamond',serif}
+
+/* ─── TOTAL BOX ─── */
+.total-box{background:var(--gold-pale);border:1px solid #E8D080;border-radius:10px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center}
+.total-label{font-size:12px;color:var(--muted);letter-spacing:.04em}
+.total-val{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--gold-deep)}
+
+/* ─── BARCODES ─── */
+.bc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.bc-card{background:var(--surface);border:1px solid var(--border-lt);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+
+/* ─── PERIOD TABS ─── */
+.period-tabs{display:flex;gap:0;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:3px;width:fit-content;margin-bottom:20px}
+.period-tab{padding:7px 18px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;font-family:'Jost',sans-serif;color:var(--muted);transition:all .15s;letter-spacing:.04em}
+.period-tab.active{background:var(--gold);color:#fff}
+
+/* ─── DASH LAYOUT ─── */
+.dash-row{display:grid;grid-template-columns:3fr 2fr;gap:18px}
+.mini-list-item{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border-lt);font-size:13px}
+.mini-list-item:last-child{border-bottom:none}
+.mini-name{font-weight:500;color:var(--ink)}
+.mini-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.mini-price{font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--gold-deep);font-weight:400}
+
+/* ─── BAR CHART ─── */
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.bar-lbl{font-size:12px;color:var(--muted);width:80px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{flex:1;height:8px;background:var(--parchment);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width .6s cubic-bezier(.2,.8,.2,1);background:linear-gradient(90deg,var(--gold),var(--gold-lt))}
+.bar-fill.silver{background:linear-gradient(90deg,#94A3B8,#CBD5E1)}
+.bar-val{font-size:11px;color:var(--muted);width:85px;text-align:right;flex-shrink:0}
+
+/* ─── RECEIPT ─── */
+.receipt{font-family:'Courier New',monospace;font-size:12px;background:#fff;color:#000;padding:24px;border-radius:8px;max-width:300px;margin:0 auto;border:1px solid #eee}
+.r-center{text-align:center}.r-bold{font-weight:bold}.r-sep{border-top:1px dashed #999;margin:8px 0}.r-row{display:flex;justify-content:space-between}
+
+/* ─── PROFILE ─── */
+.profile-header{background:linear-gradient(135deg,var(--ink) 0%,#2C1F06 100%);border-radius:var(--radius);padding:28px 28px 24px;margin-bottom:18px;position:relative;overflow:hidden}
+.profile-header::before{content:'◆';position:absolute;right:24px;top:50%;transform:translateY(-50%);font-size:80px;color:rgba(184,134,11,.12);font-family:'Cormorant Garamond',serif}
+.profile-avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-deep));display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;margin-bottom:12px;font-family:'Cormorant Garamond',serif;font-weight:400}
+.profile-name{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;color:#FAF7F2}
+.profile-role{font-size:11px;letter-spacing:.14em;color:var(--gold-lt);text-transform:uppercase;margin-top:2px}
+
+/* ─── GRID 2 ─── */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+
+/* ─── EMPTY STATE ─── */
+.empty{text-align:center;padding:52px 24px;color:var(--muted)}
+.empty-icon{font-size:40px;margin-bottom:12px;opacity:.4}
+.empty-text{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:300;margin-bottom:4px;color:var(--muted)}
+.empty-sub{font-size:12px}
+
+/* ─── DECORATIVE ─── */
+.ornament{color:var(--gold-lt);font-family:'Cormorant Garamond',serif;font-size:18px;margin:0 8px;opacity:.5}
+
+/* ─── MOBILE ─── */
+@media(max-width:768px){
+  .app{flex-direction:column}
+  .sidebar{display:none!important}
+  .main{height:100vh;padding-bottom:66px}
+  .stat-grid{grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+  .stat-card{padding:14px}.stat-val{font-size:20px}
+  .grid2,.form-row,.form-row3,.dash-row{grid-template-columns:1fr}
+  .content{padding:14px}
+  .topbar{padding:12px 16px}
+  .modal{max-width:100%!important;border-radius:20px 20px 0 0;position:fixed!important;bottom:0!important;left:0!important;right:0!important;top:auto!important;max-height:92vh}
+  .overlay{align-items:flex-end!important;padding:0!important}
+  .period-tabs{width:100%}.period-tab{flex:1;text-align:center}
+  .mobile-nav{display:flex!important}
+}
+@media(min-width:769px){.mobile-nav{display:none!important}}
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--ink);border-top:1px solid rgba(255,255,255,.08);align-items:stretch;z-index:100;height:62px;padding-bottom:env(safe-area-inset-bottom,0px)}
+.mob-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;font-family:'Jost',sans-serif;color:rgba(255,255,255,.35);font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;padding:8px 2px;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.mob-btn.active{color:var(--gold-lt)}
+.mob-btn-icon{font-size:19px;line-height:1}
+
+@media print{
+  .login-screen,.sidebar,.topbar,.mobile-nav,.modal-ft,.btn,.overlay{display:none!important}
+  body{background:#fff}
+  .receipt{border:none;box-shadow:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════ LOGIN ══════════════════ -->
+<div class="login-screen" id="login-screen">
+  <div class="login-box">
+    <span class="login-gem">💎</span>
+    <div class="login-brand">Maison d'Or</div>
+    <div class="login-sub">Ювелирный магазин · Система учёта</div>
+    <input class="login-input" type="text" id="login-username" placeholder="Логин" autocomplete="username">
+    <input class="login-input" type="password" id="login-password" placeholder="Пароль" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">Войти</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ APP ══════════════════ -->
+<div class="app" id="app" style="display:none">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-jewel">◆ Maison d'Or</div>
+      <div class="logo-name">Ювелирный магазин</div>
+      <div class="logo-sync"><span class="sync-dot" id="sync-dot"></span><span id="sync-label">Подключение...</span></div>
+    </div>
+    <div class="nav">
+      <button class="nav-btn active" data-page="dashboard"><span class="ico">◈</span>Дашборд</button>
+      <div class="nav-sec">Торговля</div>
+      <button class="nav-btn" data-page="inventory"><span class="ico">💍</span>Склад</button>
+      <button class="nav-btn" data-page="sales"><span class="ico">◎</span>Продажи</button>
+      <button class="nav-btn" data-page="purchases"><span class="ico">⚖</span>Закуп металла</button>
+      <div class="nav-sec">Инструменты</div>
+      <button class="nav-btn" data-page="barcodes"><span class="ico">▦</span>Штрихкоды</button>
+      <button class="nav-btn" data-page="analytics"><span class="ico">◉</span>Аналитика</button>
+      <div class="nav-sec">Аккаунт</div>
+      <button class="nav-btn" data-page="profile"><span class="ico">◇</span>Личный кабинет</button>
+    </div>
+    <div class="sidebar-user" onclick="goTo('profile')">
+      <div class="user-avatar" id="sb-avatar">А</div>
+      <div>
+        <div class="user-name" id="sb-name">—</div>
+        <div class="user-role" id="sb-role">владелец</div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title" id="page-title">Дашборд</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px">
+        <span class="topbar-date" id="top-date"></span>
+        <button class="btn btn-ghost btn-sm" onclick="logout()">Выйти</button>
+      </div>
+    </div>
+    <div class="content">
+      <div class="page active" id="page-dashboard"></div>
+
+      <!-- INVENTORY -->
+      <div class="page" id="page-inventory">
+        <div class="search-bar">
+          <input class="input" id="inv-search" placeholder="🔍  Поиск по названию, штрихкоду..." oninput="renderInventory()">
+          <button class="btn btn-gold" onclick="openAddProduct()">+ Добавить изделие</button>
+        </div>
+        <div class="filter-row">
+          <button class="chip active" data-fm="" onclick="setMatFilter(this,'')">Все металлы</button>
+          <button class="chip" data-fm="gold" onclick="setMatFilter(this,'gold')">🥇 Золото</button>
+          <button class="chip" data-fm="silver" onclick="setMatFilter(this,'silver')">🥈 Серебро</button>
+          <span class="chip-sep"></span>
+          <button class="chip active" data-fc="" onclick="setCatFilter(this,'')">Все</button>
+          <button class="chip" data-fc="ring" onclick="setCatFilter(this,'ring')">Кольца</button>
+          <button class="chip" data-fc="earrings" onclick="setCatFilter(this,'earrings')">Серьги</button>
+          <button class="chip" data-fc="chain" onclick="setCatFilter(this,'chain')">Цепи</button>
+          <button class="chip" data-fc="bracelet" onclick="setCatFilter(this,'bracelet')">Браслеты</button>
+        </div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Изделие</th><th>Категория</th><th>Металл</th><th>Проба</th><th>Вес</th><th>Себестоимость</th><th>Цена продажи</th><th>Статус</th><th></th></tr></thead>
+          <tbody id="inv-tbody"></tbody>
+        </table></div>
+        <div id="inv-empty" style="display:none" class="empty"><div class="empty-icon">💍</div><div class="empty-text">Склад пуст</div><div class="empty-sub">Добавьте первое изделие</div></div>
+      </div>
+
+      <!-- SALES -->
+      <div class="page" id="page-sales">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+          <div></div>
+          <button class="btn btn-gold" onclick="openSaleModal()">◎ Оформить продажу</button>
+        </div>
+        <div class="search-bar"><input class="input" id="sales-search" placeholder="🔍  Поиск по изделию..." oninput="renderSales()"></div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>№</th><th>Изделие</th><th>Металл / Проба</th><th>Вес</th><th>Сумма</th><th>Прибыль</th><th>Дата</th><th></th></tr></thead>
+          <tbody id="sales-tbody"></tbody>
+        </table></div>
+        <div id="sales-empty" style="display:none" class="empty"><div class="empty-icon">◎</div><div class="empty-text">Продаж ещё нет</div></div>
+      </div>
+
+      <!-- PURCHASES -->
+      <div class="page" id="page-purchases">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+          <div></div>
+          <button class="btn btn-gold" onclick="openPurchaseModal()">+ Принять металл</button>
+        </div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>№</th><th>Металл</th><th>Проба</th><th>Вес (г)</th><th>Цена/г</th><th>Итого</th><th>Дата</th></tr></thead>
+          <tbody id="purchases-tbody"></tbody>
+        </table></div>
+        <div id="purchases-empty" style="display:none" class="empty"><div class="empty-icon">⚖</div><div class="empty-text">Закупов ещё нет</div></div>
+      </div>
+
+      <!-- BARCODES -->
+      <div class="page" id="page-barcodes">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+          <div></div>
+        </div>
+        <div class="search-bar"><input class="input" id="bc-search" placeholder="🔍  Поиск..." oninput="renderBarcodes()"></div>
+        <div class="bc-grid" id="bc-grid"></div>
+        <div id="bc-empty" style="display:none" class="empty"><div class="empty-icon">▦</div><div class="empty-text">Нет изделий для отображения</div></div>
+      </div>
+
+      <!-- ANALYTICS -->
+      <div class="page" id="page-analytics">
+        <div class="period-tabs">
+          <button class="period-tab" data-p="week" onclick="setPeriod(this,'week')">Неделя</button>
+          <button class="period-tab active" data-p="month" onclick="setPeriod(this,'month')">Месяц</button>
+          <button class="period-tab" data-p="quarter" onclick="setPeriod(this,'quarter')">Квартал</button>
+          <button class="period-tab" data-p="year" onclick="setPeriod(this,'year')">Год</button>
+        </div>
+        <div id="analytics-content"></div>
+      </div>
+
+      <!-- PROFILE -->
+      <div class="page" id="page-profile">
+        <div id="profile-content"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE NAV -->
+<nav class="mobile-nav">
+  <button class="mob-btn active" data-page="dashboard" onclick="goTo('dashboard');setMob(this)"><span class="mob-btn-icon">◈</span>Главная</button>
+  <button class="mob-btn" data-page="inventory" onclick="goTo('inventory');setMob(this)"><span class="mob-btn-icon">💍</span>Склад</button>
+  <button class="mob-btn" data-page="sales" onclick="goTo('sales');setMob(this)"><span class="mob-btn-icon">◎</span>Продажи</button>
+  <button class="mob-btn" data-page="purchases" onclick="goTo('purchases');setMob(this)"><span class="mob-btn-icon">⚖</span>Закуп</button>
+  <button class="mob-btn" data-page="analytics" onclick="goTo('analytics');setMob(this)"><span class="mob-btn-icon">◉</span>Анализ</button>
+</nav>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ══════════════════ MODALS ══════════════════ -->
+
+<!-- ADD/EDIT PRODUCT -->
+<div class="overlay" id="modal-product">
+  <div class="modal wide">
+    <div class="modal-hd"><span class="modal-title" id="prod-modal-title">Добавить изделие</span><button class="close-x" onclick="closeModal('modal-product')">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="prod-id">
+      <div class="fg"><label>Название изделия</label><input class="input" id="prod-name" placeholder="Кольцо обручальное с бриллиантом"></div>
+      <div class="form-row">
+        <div class="fg"><label>Категория</label>
+          <select class="input" id="prod-category">
+            <option value="ring">💍 Кольцо</option>
+            <option value="earrings">💎 Серьги</option>
+            <option value="chain">⛓ Цепь</option>
+            <option value="bracelet">🔗 Браслет</option>
+            <option value="pendant">🏅 Подвеска</option>
+            <option value="other">Прочее</option>
+          </select>
+        </div>
+        <div class="fg"><label>Металл</label>
+          <select class="input" id="prod-material" onchange="updatePurityOpts('prod')">
+            <option value="gold">🥇 Золото</option>
+            <option value="silver">🥈 Серебро</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label>Проба</label><select class="input" id="prod-purity"></select></div>
+        <div class="fg"><label>Вес (граммы)</label><input class="input" type="number" id="prod-weight" placeholder="5.20" step="0.01" min="0" oninput="calcPrice()"></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label>Цена закупа за грамм (₸)</label><input class="input" type="number" id="prod-cpg" placeholder="35 000" oninput="calcPrice()"></div>
+        <div class="fg"><label>Наценка (₸)</label><input class="input" type="number" id="prod-markup" placeholder="5 000" oninput="calcPrice()"></div>
+      </div>
+      <div class="calc-box">
+        <div class="calc-row"><span>Себестоимость (вес × цена/г)</span><span id="calc-cost">0 ₸</span></div>
+        <div class="calc-row"><span>Наценка</span><span id="calc-mu">0 ₸</span></div>
+        <div class="calc-row total"><span>Цена продажи</span><span id="calc-sale">0 ₸</span></div>
+      </div>
+      <div class="fg"><label>Штрихкод (оставьте пустым — сгенерируется автоматически)</label><input class="input" id="prod-barcode" placeholder="Авто EAN-13"></div>
+    </div>
+    <div class="modal-ft"><button class="btn btn-ghost" onclick="closeModal('modal-product')">Отмена</button><button class="btn btn-gold" onclick="saveProduct()">Сохранить</button></div>
+  </div>
+</div>
+
+<!-- SALE -->
+<div class="overlay" id="modal-sale">
+  <div class="modal">
+    <div class="modal-hd"><span class="modal-title">Оформить продажу</span><button class="close-x" onclick="closeModal('modal-sale')">×</button></div>
+    <div class="modal-body">
+      <div class="fg"><label>Поиск изделия</label>
+        <input class="input" id="sale-q" placeholder="Название или штрихкод..." oninput="searchSale()">
+        <div id="sale-results" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-top:4px;max-height:200px;overflow-y:auto;display:none"></div>
+      </div>
+      <div id="sale-selected" style="display:none;background:var(--gold-pale);border:1px solid #E8D080;border-radius:10px;padding:14px"></div>
+      <div class="fg"><label>Скидка (₸)</label><input class="input" type="number" id="sale-discount" value="0" oninput="calcSaleTotal()"></div>
+      <div class="total-box"><span class="total-label">К оплате</span><span class="total-val" id="sale-total">0 ₸</span></div>
+    </div>
+    <div class="modal-ft"><button class="btn btn-ghost" onclick="closeModal('modal-sale')">Отмена</button><button class="btn btn-gold" onclick="confirmSale()">✓ Продать</button></div>
+  </div>
+</div>
+
+<!-- PURCHASE -->
+<div class="overlay" id="modal-purchase">
+  <div class="modal">
+    <div class="modal-hd"><span class="modal-title">Принять металл</span><button class="close-x" onclick="closeModal('modal-purchase')">×</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="fg"><label>Металл</label><select class="input" id="pur-mat" onchange="updatePurityOpts('pur')"><option value="gold">🥇 Золото</option><option value="silver">🥈 Серебро</option></select></div>
+        <div class="fg"><label>Проба</label><select class="input" id="pur-purity"></select></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label>Вес (г)</label><input class="input" type="number" id="pur-weight" placeholder="10.50" step="0.01" oninput="calcPurTotal()"></div>
+        <div class="fg"><label>Цена за грамм (₸)</label><input class="input" type="number" id="pur-ppg" placeholder="28 000" oninput="calcPurTotal()"></div>
+      </div>
+      <div class="total-box"><span class="total-label">К выплате клиенту</span><span class="total-val" id="pur-total">0 ₸</span></div>
+    </div>
+    <div class="modal-ft"><button class="btn btn-ghost" onclick="closeModal('modal-purchase')">Отмена</button><button class="btn btn-gold" onclick="savePurchase()">Сохранить</button></div>
+  </div>
+</div>
+
+<!-- RECEIPT -->
+<div class="overlay" id="modal-receipt">
+  <div class="modal">
+    <div class="modal-hd"><span class="modal-title">Чек продажи</span><button class="close-x" onclick="closeModal('modal-receipt')">×</button></div>
+    <div class="modal-body"><div id="receipt-html"></div></div>
+    <div class="modal-ft"><button class="btn btn-ghost" onclick="closeModal('modal-receipt')">Закрыть</button><button class="btn btn-gold" onclick="window.print()">🖨 Распечатать</button></div>
+  </div>
+</div>
+
+<!-- BARCODE -->
+<div class="overlay" id="modal-barcode">
+  <div class="modal">
+    <div class="modal-hd"><span class="modal-title">Штрихкод изделия</span><button class="close-x" onclick="closeModal('modal-barcode')">×</button></div>
+    <div class="modal-body">
+      <div id="bc-prod-name" style="font-weight:500;color:var(--ink);margin-bottom:4px"></div>
+      <div class="fg"><label>Штрихкод</label><input class="input" id="bc-val" oninput="previewBC()"></div>
+      <div id="bc-preview" style="background:#fff;border-radius:8px;padding:14px;text-align:center;margin-top:4px;border:1px solid var(--border)"></div>
+    </div>
+    <div class="modal-ft"><button class="btn btn-ghost" onclick="closeModal('modal-barcode')">Отмена</button><button class="btn btn-gold" onclick="saveBarcode()">Сохранить</button></div>
+  </div>
+</div>
+
+<!-- CHANGE PASSWORD -->
+<div class="overlay" id="modal-passwd">
+  <div class="modal">
+    <div class="modal-hd"><span class="modal-title">Изменить пароль</span><button class="close-x" onclick="closeModal('modal-passwd')">×</button></div>
+    <div class="modal-body">
+      <div class="fg"><label>Текущий пароль</label><input class="input" type="password" id="pw-old"></div>
+      <div class="fg"><label>Новый пароль</label><input class="input" type="password" id="pw-new"></div>
+      <div class="fg"><label>Повторите новый пароль</label><input class="input" type="password" id="pw-new2"></div>
+    </div>
+    <div class="modal-ft"><button class="btn btn-ghost" onclick="closeModal('modal-passwd')">Отмена</button><button class="btn btn-gold" onclick="changePassword()">Сохранить</button></div>
+  </div>
+</div>
+
+<!-- EDIT PROFILE -->
+<div class="overlay" id="modal-profile-edit">
+  <div class="modal">
+    <div class="modal-hd"><span class="modal-title">Редактировать данные</span><button class="close-x" onclick="closeModal('modal-profile-edit')">×</button></div>
+    <div class="modal-body">
+      <div class="fg"><label>Полное имя</label><input class="input" id="pe-name" placeholder="Иванов Иван Иванович"></div>
+      <div class="fg"><label>Телефон</label><input class="input" id="pe-phone" placeholder="+7 700 000-00-00"></div>
+      <div class="fg"><label>Логин</label><input class="input" id="pe-username" placeholder="admin"></div>
+    </div>
+    <div class="modal-ft"><button class="btn btn-ghost" onclick="closeModal('modal-profile-edit')">Отмена</button><button class="btn btn-gold" onclick="saveProfile()">Сохранить</button></div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ══════════════════════════════════════════════════════════════
+// SUPABASE CONFIG
+// ══════════════════════════════════════════════════════════════
+const SUPA_URL = 'https://ztpxsqfcffmfcemuvqrf.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp0cHhzcWZjZmZtZmNlbXV2cXJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MzI4NDUsImV4cCI6MjA4OTQwODg0NX0.lLlWkaAaOKwQNNsm5eJP0OBNMi9hqJIXqtf_2fxPdKU';
+
+const H = () => ({'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'return=representation'});
+
+async function sbGet(t, qs=''){const r=await fetch(SUPA_URL+'/rest/v1/'+t+'?select=*'+qs,{headers:H()});if(!r.ok)throw new Error(await r.text());return r.json();}
+async function sbInsert(t,d){const r=await fetch(SUPA_URL+'/rest/v1/'+t,{method:'POST',headers:H(),body:JSON.stringify(d)});if(!r.ok)throw new Error(await r.text());return r.json();}
+async function sbUpdate(t,id,d){const r=await fetch(SUPA_URL+'/rest/v1/'+t+'?id=eq.'+id,{method:'PATCH',headers:{...H(),'Prefer':'return=minimal'},body:JSON.stringify(d)});if(!r.ok)throw new Error(await r.text());}
+async function sbDelete(t,id){const r=await fetch(SUPA_URL+'/rest/v1/'+t+'?id=eq.'+id,{method:'DELETE',headers:H()});if(!r.ok)throw new Error(await r.text());}
+
+// ══════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════
+let products=[], sales=[], purchases=[], users=[];
+let currentUser = null;
+let invMatFilter='', invCatFilter='';
+let analyticsPeriod='month';
+let currentSaleProd=null, editBcId=null;
+
+// ══════════════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════════════
+const fmt  = n => Math.round(Number(n||0)).toLocaleString('ru-RU')+' ₸';
+const fmtG = n => Number(n||0).toFixed(2)+' г';
+const esc  = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+const CATS = {ring:'💍 Кольцо',earrings:'💎 Серьги',chain:'⛓ Цепь',bracelet:'🔗 Браслет',pendant:'🏅 Подвеска',other:'Прочее'};
+const MATS = {gold:'🥇 Золото',silver:'🥈 Серебро'};
+const PT   = {dashboard:'Дашборд',inventory:'Склад',sales:'Продажи',purchases:'Закуп металла',barcodes:'Штрихкоды',analytics:'Аналитика',profile:'Личный кабинет'};
+
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function toast(msg,type='success'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type;t.style.opacity='1';clearTimeout(window._tt);window._tt=setTimeout(()=>t.style.opacity='0',2600);}
+function setSyncStatus(ok){const d=document.getElementById('sync-dot'),l=document.getElementById('sync-label');if(!d)return;d.className='sync-dot'+(ok?' ok':'');l.textContent=ok?'Синхронизировано':'Нет соединения';}
+function setMob(btn){document.querySelectorAll('.mob-btn').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');}
+
+function generateEAN13(){
+  const b='460'+Math.floor(Math.random()*1e9).toString().padStart(9,'0');
+  let s=0; for(let i=0;i<12;i++) s+=parseInt(b[i])*(i%2===0?1:3);
+  return b+((10-(s%10))%10);
+}
+
+function matBadge(m){
+  if(m==='gold') return '<span class="badge badge-gold">🥇 Золото</span>';
+  return '<span class="badge badge-silver">🥈 Серебро</span>';
+}
+function statusBadge(s){
+  if(s==='sold') return '<span class="badge badge-sold">Продан</span>';
+  return '<span class="badge badge-available">В наличии</span>';
+}
+
+// Purity options
+function updatePurityOpts(prefix){
+  const mat = document.getElementById(prefix+'-material'||prefix+'-mat')?.value
+            || document.getElementById(prefix+'mat')?.value
+            || document.getElementById({prod:'prod-material',pur:'pur-mat'}[prefix])?.value;
+  const sel = document.getElementById({prod:'prod-purity',pur:'pur-purity'}[prefix]);
+  if(!sel) return;
+  if(mat==='gold') sel.innerHTML='<option value="375">375</option><option value="585" selected>585</option><option value="750">750</option><option value="958">958</option><option value="999">999</option>';
+  else sel.innerHTML='<option value="800">800</option><option value="875">875</option><option value="925" selected>925</option><option value="960">960</option><option value="999">999</option>';
+}
+
+// ══════════════════════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════════════════════
+async function doLogin(){
+  const u=document.getElementById('login-username').value.trim();
+  const p=document.getElementById('login-password').value;
+  if(!u||!p){document.getElementById('login-err').textContent='Введите логин и пароль';return;}
+  try {
+    const res = await sbGet('users','&username=eq.'+encodeURIComponent(u)+'&password=eq.'+encodeURIComponent(p));
+    if(!res||!res.length){document.getElementById('login-err').textContent='Неверный логин или пароль';return;}
+    currentUser = res[0];
+    sessionStorage.setItem('jewel_user', JSON.stringify(currentUser));
+    showApp();
+  } catch(e){document.getElementById('login-err').textContent='Ошибка: '+e.message;}
+}
+
+function logout(){
+  sessionStorage.removeItem('jewel_user');
+  currentUser=null;
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-password').value='';
+  document.getElementById('login-err').textContent='';
+}
+
+async function showApp(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  updateSidebarUser();
+  await loadAll();
+  setSyncStatus(true);
+  renderDashboard();
+  document.getElementById('top-date').textContent = new Date().toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'});
+  setInterval(async()=>{try{await loadAll();setSyncStatus(true);}catch{setSyncStatus(false);}},60000);
+}
+
+function updateSidebarUser(){
+  if(!currentUser) return;
+  const initials = (currentUser.full_name||currentUser.username||'?').charAt(0).toUpperCase();
+  document.getElementById('sb-avatar').textContent = initials;
+  document.getElementById('sb-name').textContent = currentUser.full_name||currentUser.username;
+  document.getElementById('sb-role').textContent = currentUser.role||'владелец';
+}
+
+// ══════════════════════════════════════════════════════════════
+// PROFILE
+// ══════════════════════════════════════════════════════════════
+function renderProfile(){
+  const u = currentUser||{};
+  const initials = (u.full_name||u.username||'?').charAt(0).toUpperCase();
+  document.getElementById('page-profile').innerHTML=`
+    <div class="profile-header">
+      <div class="profile-avatar">${initials}</div>
+      <div class="profile-name">${esc(u.full_name||u.username||'—')}</div>
+      <div class="profile-role">${u.role||'владелец'}</div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-title">Личные данные</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-lt)">
+            <span style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Логин</span>
+            <span style="font-weight:500">${esc(u.username||'—')}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-lt)">
+            <span style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Имя</span>
+            <span style="font-weight:500">${esc(u.full_name||'—')}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-lt)">
+            <span style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Телефон</span>
+            <span style="font-weight:500">${esc(u.phone||'—')}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0">
+            <span style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Роль</span>
+            <span style="font-weight:500;color:var(--gold-deep)">${esc(u.role||'—')}</span>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="openEditProfile()">✏ Редактировать</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Безопасность</div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="padding:14px;background:var(--surface2);border:1px solid var(--border-lt);border-radius:8px">
+            <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Пароль</div>
+            <div style="font-size:13px">••••••••</div>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="openModal('modal-passwd')">🔐 Изменить пароль</button>
+        </div>
+        <div class="card-title" style="margin-top:20px">Статистика аккаунта</div>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Товаров добавлено</span><strong>${products.filter(p=>p.status==='available').length}</strong></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Продаж оформлено</span><strong>${sales.length}</strong></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Закупов металла</span><strong>${purchases.length}</strong></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function openEditProfile(){
+  const u=currentUser||{};
+  document.getElementById('pe-name').value=u.full_name||'';
+  document.getElementById('pe-phone').value=u.phone||'';
+  document.getElementById('pe-username').value=u.username||'';
+  openModal('modal-profile-edit');
+}
+
+async function saveProfile(){
+  const name=document.getElementById('pe-name').value.trim();
+  const phone=document.getElementById('pe-phone').value.trim();
+  const username=document.getElementById('pe-username').value.trim();
+  if(!username){toast('Логин не может быть пустым','error');return;}
+  try{
+    await sbUpdate('users',currentUser.id,{full_name:name,phone,username});
+    currentUser.full_name=name;currentUser.phone=phone;currentUser.username=username;
+    sessionStorage.setItem('jewel_user',JSON.stringify(currentUser));
+    closeModal('modal-profile-edit');
+    updateSidebarUser();
+    renderProfile();
+    toast('✓ Данные обновлены');
+  }catch(e){toast('Ошибка: '+e.message,'error');}
+}
+
+async function changePassword(){
+  const old=document.getElementById('pw-old').value;
+  const nw=document.getElementById('pw-new').value;
+  const nw2=document.getElementById('pw-new2').value;
+  if(!old||!nw){toast('Заполните все поля','error');return;}
+  if(nw!==nw2){toast('Пароли не совпадают','error');return;}
+  if(old!==currentUser.password){toast('Неверный текущий пароль','error');return;}
+  if(nw.length<4){toast('Минимум 4 символа','error');return;}
+  try{
+    await sbUpdate('users',currentUser.id,{password:nw});
+    currentUser.password=nw;
+    sessionStorage.setItem('jewel_user',JSON.stringify(currentUser));
+    closeModal('modal-passwd');
+    document.getElementById('pw-old').value='';
+    document.getElementById('pw-new').value='';
+    document.getElementById('pw-new2').value='';
+    toast('🔐 Пароль изменён');
+  }catch(e){toast('Ошибка: '+e.message,'error');}
+}
+
+// ══════════════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════════════
+document.querySelectorAll('.nav-btn[data-page]').forEach(btn=>{
+  btn.addEventListener('click',()=>goTo(btn.dataset.page));
+});
+
+function goTo(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  const nb=document.querySelector(`.nav-btn[data-page="${page}"]`);
+  if(nb) nb.classList.add('active');
+  document.getElementById('page-title').textContent=PT[page]||page;
+  renderPage(page);
+}
+
+function renderPage(p){
+  if(p==='dashboard') renderDashboard();
+  else if(p==='inventory') renderInventory();
+  else if(p==='sales') renderSales();
+  else if(p==='purchases') renderPurchases();
+  else if(p==='barcodes') renderBarcodes();
+  else if(p==='analytics') renderAnalytics();
+  else if(p==='profile') renderProfile();
+}
+
+// ══════════════════════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════════════════════
+async function loadAll(){
+  const [p,s,pur] = await Promise.all([
+    sbGet('products','&order=created_at.desc'),
+    sbGet('sales','&order=date.desc&limit=500'),
+    sbGet('purchases','&order=date.desc&limit=500'),
+  ]);
+  products=p||[]; sales=s||[]; purchases=pur||[];
+}
+
+// ══════════════════════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════════════════════
+function renderDashboard(){
+  const avail=products.filter(p=>p.status==='available');
+  const totalVal=avail.reduce((s,p)=>s+(Number(p.sale_price)||0),0);
+  const goldW=avail.filter(p=>p.material==='gold').reduce((s,p)=>s+(Number(p.weight)||0),0);
+  const silverW=avail.filter(p=>p.material==='silver').reduce((s,p)=>s+(Number(p.weight)||0),0);
+  const now=new Date(), ms=new Date(now.getFullYear(),now.getMonth(),1).toISOString();
+  const mSales=sales.filter(s=>s.date>=ms);
+  const mRev=mSales.reduce((s,x)=>s+(Number(x.sale_price)||0),0);
+  const mProfit=mSales.reduce((s,x)=>s+(Number(x.profit)||0),0);
+  const catBreak={};avail.forEach(p=>{catBreak[p.category]=(catBreak[p.category]||0)+1;});
+
+  document.getElementById('page-dashboard').innerHTML=`
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-lbl">Изделий на складе</div><div class="stat-val">${avail.length}</div><div class="stat-sub">Продано: ${products.length-avail.length} шт</div></div>
+      <div class="stat-card"><div class="stat-lbl">Стоимость склада</div><div class="stat-val" style="font-size:20px">${fmt(totalVal)}</div><div class="stat-sub">По ценам продажи</div></div>
+      <div class="stat-card"><div class="stat-lbl">Выручка за месяц</div><div class="stat-val" style="font-size:20px">${fmt(mRev)}</div><div class="stat-sub">${mSales.length} продаж</div></div>
+      <div class="stat-card"><div class="stat-lbl">Прибыль за месяц</div><div class="stat-val" style="font-size:20px;color:var(--green)">${fmt(mProfit)}</div><div class="stat-sub">Маржа: ${mRev>0?Math.round(mProfit/mRev*100):0}%</div></div>
+    </div>
+    <div class="dash-row">
+      <div>
+        <div class="card">
+          <div class="card-title">Металлы в наличии <span>вес в граммах</span></div>
+          <div class="bar-row"><span class="bar-lbl">🥇 Золото</span><div class="bar-track"><div class="bar-fill" style="width:${goldW>0?Math.min(100,goldW/(goldW+silverW||1)*100):0}%"></div></div><span class="bar-val">${goldW.toFixed(2)} г</span></div>
+          <div class="bar-row"><span class="bar-lbl">🥈 Серебро</span><div class="bar-track"><div class="bar-fill silver" style="width:${silverW>0?Math.min(100,silverW/(goldW+silverW||1)*100):0}%"></div></div><span class="bar-val">${silverW.toFixed(2)} г</span></div>
+          <div style="height:1px;background:var(--border-lt);margin:16px 0"></div>
+          <div class="card-title" style="margin-bottom:10px">По категориям</div>
+          ${Object.entries(catBreak).sort((a,b)=>b[1]-a[1]).map(([cat,cnt])=>`
+            <div class="bar-row"><span class="bar-lbl">${(CATS[cat]||cat).replace(/[^\w\s]/gu,'').trim()||cat}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.min(100,cnt/Math.max(...Object.values(catBreak))*100)}%"></div></div><span class="bar-val">${cnt} шт</span></div>`).join('')}
+          ${Object.keys(catBreak).length===0?'<div class="empty" style="padding:20px"><div class="empty-sub">Нет данных</div></div>':''}
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-title">Последние поступления</div>
+          ${avail.slice(0,6).map(p=>`
+            <div class="mini-list-item">
+              <div><div class="mini-name">${esc(p.name)}</div><div class="mini-sub">${p.purity}° · ${fmtG(p.weight)}</div></div>
+              <div class="mini-price">${fmt(p.sale_price)}</div>
+            </div>`).join('')}
+          ${avail.length===0?'<div class="empty" style="padding:20px"><div class="empty-sub">Склад пуст</div></div>':''}
+        </div>
+        <div class="card">
+          <div class="card-title">Последние продажи</div>
+          ${sales.slice(0,5).map(s=>{
+            const p=products.find(x=>x.id===s.product_id)||{};
+            return `<div class="mini-list-item"><div><div class="mini-name">${esc(p.name||'—')}</div><div class="mini-sub">${s.date?s.date.slice(0,10):''}</div></div><div class="mini-price" style="color:var(--green)">${fmt(s.sale_price)}</div></div>`;
+          }).join('')}
+          ${sales.length===0?'<div class="empty" style="padding:20px"><div class="empty-sub">Нет продаж</div></div>':''}
+        </div>
+      </div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// INVENTORY
+// ══════════════════════════════════════════════════════════════
+function setMatFilter(el,v){invMatFilter=v;document.querySelectorAll('[data-fm]').forEach(b=>b.classList.toggle('active',b.dataset.fm===v));renderInventory();}
+function setCatFilter(el,v){invCatFilter=v;document.querySelectorAll('[data-fc]').forEach(b=>b.classList.toggle('active',b.dataset.fc===v));renderInventory();}
+
+function renderInventory(){
+  const q=(document.getElementById('inv-search')?.value||'').toLowerCase();
+  const list=products.filter(p=>{
+    if(invMatFilter&&p.material!==invMatFilter) return false;
+    if(invCatFilter&&p.category!==invCatFilter) return false;
+    if(q&&!p.name?.toLowerCase().includes(q)&&!p.barcode?.includes(q)) return false;
+    return true;
+  });
+  const tbody=document.getElementById('inv-tbody');
+  document.getElementById('inv-empty').style.display=list.length?'none':'';
+  tbody.innerHTML=list.map(p=>`<tr>
+    <td><div style="font-weight:500">${esc(p.name)}</div></td>
+    <td style="color:var(--muted)">${CATS[p.category]||p.category}</td>
+    <td>${matBadge(p.material)}</td>
+    <td><span class="purity">${p.purity}°</span></td>
+    <td>${fmtG(p.weight)}</td>
+    <td style="color:var(--muted)">${fmt(p.cost_price)}</td>
+    <td style="font-weight:500;color:var(--gold-deep)">${fmt(p.sale_price)}</td>
+    <td>${statusBadge(p.status||'available')}</td>
+    <td><div style="display:flex;gap:4px;flex-wrap:wrap">
+      ${p.status==='available'?`<button class="btn btn-outline btn-xs" onclick="openSaleModalWith(${p.id})">Продать</button>`:''}
+      <button class="btn btn-ghost btn-xs" onclick="openEditProduct(${p.id})">✏</button>
+      <button class="btn btn-ghost btn-xs" onclick="openBarcodeModal(${p.id})">▦</button>
+      <button class="btn btn-danger btn-xs" onclick="deleteProduct(${p.id})">✕</button>
+    </div></td>
+  </tr>`).join('');
+}
+
+function openAddProduct(){
+  document.getElementById('prod-id').value='';
+  document.getElementById('prod-modal-title').textContent='Добавить изделие';
+  ['prod-name','prod-weight','prod-cpg','prod-markup','prod-barcode'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('prod-material').value='gold';
+  updatePurityOpts('prod');
+  document.getElementById('prod-category').value='ring';
+  calcPrice();
+  openModal('modal-product');
+}
+
+function openEditProduct(id){
+  const p=products.find(x=>x.id===id);if(!p)return;
+  document.getElementById('prod-id').value=p.id;
+  document.getElementById('prod-modal-title').textContent='Редактировать изделие';
+  document.getElementById('prod-name').value=p.name||'';
+  document.getElementById('prod-category').value=p.category||'ring';
+  document.getElementById('prod-material').value=p.material||'gold';
+  updatePurityOpts('prod');
+  document.getElementById('prod-purity').value=p.purity||'585';
+  document.getElementById('prod-weight').value=p.weight||'';
+  document.getElementById('prod-cpg').value=p.cost_per_gram||'';
+  document.getElementById('prod-markup').value=p.markup||'';
+  document.getElementById('prod-barcode').value=p.barcode||'';
+  calcPrice();
+  openModal('modal-product');
+}
+
+function calcPrice(){
+  const w=parseFloat(document.getElementById('prod-weight').value)||0;
+  const cpg=parseFloat(document.getElementById('prod-cpg').value)||0;
+  const mu=parseFloat(document.getElementById('prod-markup').value)||0;
+  const cost=Math.round(w*cpg*100)/100;
+  document.getElementById('calc-cost').textContent=fmt(cost);
+  document.getElementById('calc-mu').textContent=fmt(mu);
+  document.getElementById('calc-sale').textContent=fmt(Math.round((cost+mu)*100)/100);
+}
+
+async function saveProduct(){
+  const name=document.getElementById('prod-name').value.trim();
+  if(!name){toast('Введите название','error');return;}
+  const w=parseFloat(document.getElementById('prod-weight').value)||0;
+  if(w<=0){toast('Введите вес','error');return;}
+  const cpg=parseFloat(document.getElementById('prod-cpg').value)||0;
+  const mu=parseFloat(document.getElementById('prod-markup').value)||0;
+  const cost_price=Math.round(w*cpg*100)/100;
+  const sale_price=Math.round((cost_price+mu)*100)/100;
+  const barcode=document.getElementById('prod-barcode').value.trim()||generateEAN13();
+  const data={name,category:document.getElementById('prod-category').value,material:document.getElementById('prod-material').value,purity:document.getElementById('prod-purity').value,weight:w,cost_per_gram:cpg,markup:mu,cost_price,sale_price,barcode};
+  const eid=document.getElementById('prod-id').value;
+  try{
+    if(eid){
+      await sbUpdate('products',eid,data);
+      const i=products.findIndex(x=>x.id==eid);if(i>=0)Object.assign(products[i],data);
+      toast('✓ Изделие обновлено');
+    } else {
+      data.status='available';data.created_at=new Date().toISOString();
+      const r=await sbInsert('products',data);
+      if(r&&r[0])products.unshift(r[0]);
+      toast('✓ Изделие добавлено','info');
+    }
+    closeModal('modal-product');renderInventory();renderDashboard();
+  }catch(e){toast('Ошибка: '+e.message,'error');}
+}
+
+async function deleteProduct(id){
+  if(!confirm('Удалить изделие?'))return;
+  try{await sbDelete('products',id);products=products.filter(p=>p.id!==id);renderInventory();renderDashboard();toast('Удалено');}
+  catch(e){toast('Ошибка: '+e.message,'error');}
+}
+
+// ══════════════════════════════════════════════════════════════
+// SALES
+// ══════════════════════════════════════════════════════════════
+function renderSales(){
+  const q=(document.getElementById('sales-search')?.value||'').toLowerCase();
+  const list=sales.filter(s=>!q||(products.find(x=>x.id===s.product_id)?.name||'').toLowerCase().includes(q));
+  const tbody=document.getElementById('sales-tbody');
+  document.getElementById('sales-empty').style.display=list.length?'none':'';
+  tbody.innerHTML=list.map(s=>{
+    const p=products.find(x=>x.id===s.product_id)||{};
+    return `<tr>
+      <td style="color:var(--muted)">#${s.id}</td>
+      <td><div style="font-weight:500">${esc(p.name||'—')}</div></td>
+      <td>${p.material?matBadge(p.material):''} <span class="purity">${p.purity||'—'}°</span></td>
+      <td>${fmtG(p.weight||0)}</td>
+      <td style="font-weight:500;color:var(--gold-deep)">${fmt(s.sale_price)}</td>
+      <td style="color:var(--green)">${fmt(s.profit)}</td>
+      <td style="color:var(--muted)">${s.date?s.date.slice(0,10):''}</td>
+      <td><button class="btn btn-ghost btn-xs" onclick="showReceipt(${s.id})">🧾 Чек</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function openSaleModal(){currentSaleProd=null;document.getElementById('sale-q').value='';document.getElementById('sale-results').style.display='none';document.getElementById('sale-selected').style.display='none';document.getElementById('sale-discount').value='0';document.getElementById('sale-total').textContent='0 ₸';openModal('modal-sale');}
+function openSaleModalWith(id){openSaleModal();const p=products.find(x=>x.id===id);if(p)selectSaleProd(p);}
+
+function searchSale(){
+  const q=document.getElementById('sale-q').value.toLowerCase();
+  const res=document.getElementById('sale-results');
+  if(!q){res.style.display='none';return;}
+  const matches=products.filter(p=>p.status==='available'&&(p.name?.toLowerCase().includes(q)||p.barcode?.includes(q))).slice(0,8);
+  if(!matches.length){res.style.display='none';return;}
+  res.style.display='block';
+  res.innerHTML=matches.map(p=>`
+    <div onclick='selectSaleProd(${JSON.stringify(p).replace(/'/g,"&#39;")})' style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border-lt);display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
+      <div><div style="font-weight:500;font-size:13px">${esc(p.name)}</div><div style="font-size:11px;color:var(--muted)">${MATS[p.material]||p.material} · ${p.purity}° · ${fmtG(p.weight)}</div></div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--gold-deep)">${fmt(p.sale_price)}</div>
+    </div>`).join('');
+}
+
+function selectSaleProd(p){
+  if(typeof p==='string')p=JSON.parse(p);
+  currentSaleProd=p;
+  document.getElementById('sale-results').style.display='none';
+  document.getElementById('sale-q').value=p.name;
+  const sel=document.getElementById('sale-selected');
+  sel.style.display='block';
+  sel.innerHTML=`<div style="font-weight:600;color:var(--gold-deep);margin-bottom:4px">${esc(p.name)}</div>
+    <div style="font-size:12px;color:var(--muted)">${MATS[p.material]||p.material} · ${p.purity}° · ${fmtG(p.weight)}</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:2px">Себест.: ${fmt(p.cost_price)} · Наценка: ${fmt(p.markup)}</div>`;
+  calcSaleTotal();
+}
+
+function calcSaleTotal(){
+  if(!currentSaleProd)return;
+  const disc=parseFloat(document.getElementById('sale-discount').value)||0;
+  document.getElementById('sale-total').textContent=fmt(Math.max(0,(currentSaleProd.sale_price||0)-disc));
+}
+
+async function confirmSale(){
+  if(!currentSaleProd){toast('Выберите изделие','error');return;}
+  const disc=parseFloat(document.getElementById('sale-discount').value)||0;
+  const total=Math.max(0,(currentSaleProd.sale_price||0)-disc);
+  const profit=total-(currentSaleProd.cost_price||0);
+  const data={product_id:currentSaleProd.id,sale_price:total,discount:disc,profit:Math.round(profit*100)/100,date:new Date().toISOString()};
+  try{
+    const r=await sbInsert('sales',data);
+    await sbUpdate('products',currentSaleProd.id,{status:'sold'});
+    if(r&&r[0])sales.unshift(r[0]);
+    const i=products.findIndex(x=>x.id===currentSaleProd.id);if(i>=0)products[i].status='sold';
+    closeModal('modal-sale');
+    if(r&&r[0])showReceipt(r[0].id,currentSaleProd,total,disc);
+    renderSales();renderInventory();renderDashboard();
+    toast('✓ Продажа оформлена','info');
+  }catch(e){toast('Ошибка: '+e.message,'error');}
+}
+
+function showReceipt(saleId,pOverride,totalOverride,discOverride){
+  const s=sales.find(x=>x.id===saleId)||{};
+  const p=pOverride||products.find(x=>x.id===s.product_id)||{};
+  const total=totalOverride??s.sale_price;
+  const disc=discOverride??s.discount??0;
+  const date=new Date(s.date||Date.now()).toLocaleString('ru-RU');
+  document.getElementById('receipt-html').innerHTML=`
+    <div class="receipt">
+      <div class="r-center r-bold" style="font-size:14px;letter-spacing:.1em">MAISON D'OR</div>
+      <div class="r-center" style="font-size:10px">Ювелирный магазин</div>
+      <div class="r-sep"></div>
+      <div class="r-center" style="font-size:11px">${date}</div>
+      <div class="r-sep"></div>
+      <div class="r-bold">${esc(p.name||'—')}</div>
+      <div>${MATS[p.material]||''} · ${p.purity||''}° · ${fmtG(p.weight||0)}</div>
+      <div>Штрихкод: ${p.barcode||'—'}</div>
+      <div class="r-sep"></div>
+      <div class="r-row"><span>Цена:</span><span>${fmt(p.sale_price)}</span></div>
+      ${disc>0?`<div class="r-row"><span>Скидка:</span><span>− ${fmt(disc)}</span></div>`:''}
+      <div class="r-row r-bold"><span>ИТОГО:</span><span>${fmt(total)}</span></div>
+      <div class="r-sep"></div>
+      <div class="r-center" style="font-size:10px">Спасибо за покупку!</div>
+      <div class="r-center" style="font-size:10px">Чек №${saleId||'—'}</div>
+    </div>`;
+  openModal('modal-receipt');
+}
+
+// ══════════════════════════════════════════════════════════════
+// PURCHASES
+// ══════════════════════════════════════════════════════════════
+function renderPurchases(){
+  const tbody=document.getElementById('purchases-tbody');
+  document.getElementById('purchases-empty').style.display=purchases.length?'none':'';
+  tbody.innerHTML=purchases.map(p=>`<tr>
+    <td style="color:var(--muted)">#${p.id}</td>
+    <td>${matBadge(p.material)}</td>
+    <td><span class="purity">${p.purity}°</span></td>
+    <td>${fmtG(p.weight)}</td>
+    <td style="color:var(--muted)">${fmt(p.price_per_gram)}/г</td>
+    <td style="font-weight:500;color:var(--gold-deep)">${fmt(p.total_price)}</td>
+    <td style="color:var(--muted)">${p.date?p.date.slice(0,10):''}</td>
+  </tr>`).join('');
+}
+
+function openPurchaseModal(){
+  document.getElementById('pur-mat').value='gold';
+  updatePurityOpts('pur');
+  document.getElementById('pur-weight').value='';
+  document.getElementById('pur-ppg').value='';
+  document.getElementById('pur-total').textContent='0 ₸';
+  openModal('modal-purchase');
+}
+
+function calcPurTotal(){
+  const w=parseFloat(document.getElementById('pur-weight').value)||0;
+  const ppg=parseFloat(document.getElementById('pur-ppg').value)||0;
+  document.getElementById('pur-total').textContent=fmt(Math.round(w*ppg*100)/100);
+}
+
+async function savePurchase(){
+  const w=parseFloat(document.getElementById('pur-weight').value)||0;
+  const ppg=parseFloat(document.getElementById('pur-ppg').value)||0;
+  if(w<=0||ppg<=0){toast('Введите вес и цену','error');return;}
+  const data={material:document.getElementById('pur-mat').value,purity:document.getElementById('pur-purity').value,weight:w,price_per_gram:ppg,total_price:Math.round(w*ppg*100)/100,date:new Date().toISOString()};
+  try{
+    const r=await sbInsert('purchases',data);
+    if(r&&r[0])purchases.unshift(r[0]);
+    closeModal('modal-purchase');renderPurchases();toast('✓ Закуп сохранён','info');
+  }catch(e){toast('Ошибка: '+e.message,'error');}
+}
+
+// ══════════════════════════════════════════════════════════════
+// BARCODES
+// ══════════════════════════════════════════════════════════════
+function renderBarcodes(){
+  const q=(document.getElementById('bc-search')?.value||'').toLowerCase();
+  const list=products.filter(p=>!q||p.name?.toLowerCase().includes(q)||p.barcode?.includes(q));
+  const grid=document.getElementById('bc-grid');
+  document.getElementById('bc-empty').style.display=list.length?'none':'';
+  grid.innerHTML=list.map(p=>`
+    <div class="bc-card">
+      <div style="font-weight:500;font-size:13px;margin-bottom:2px">${esc(p.name)}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px">${MATS[p.material]||p.material} · ${p.purity}° · ${fmtG(p.weight)}</div>
+      <div style="background:#fff;border-radius:6px;padding:10px;text-align:center;border:1px solid var(--border-lt);margin-bottom:10px">
+        <svg id="bc-${p.id}"></svg>
+        <div style="font-size:10px;color:#333;margin-top:4px;font-family:monospace">${p.barcode||''}</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-ghost btn-xs" onclick="openBarcodeModal(${p.id})" style="flex:1">✏ Изменить</button>
+        <button class="btn btn-outline btn-xs" onclick="printBarcode(${p.id})" style="flex:1">🖨 Печать</button>
+      </div>
+    </div>`).join('');
+  list.forEach(p=>{
+    if(p.barcode)try{JsBarcode('#bc-'+p.id,p.barcode,{format:'CODE128',width:1.5,height:40,displayValue:false,margin:0});}catch{}
+  });
+}
+
+function openBarcodeModal(id){
+  const p=products.find(x=>x.id===id);if(!p)return;
+  editBcId=id;
+  document.getElementById('bc-prod-name').textContent=p.name;
+  document.getElementById('bc-val').value=p.barcode||'';
+  previewBC();
+  openModal('modal-barcode');
+}
+
+function previewBC(){
+  const v=document.getElementById('bc-val').value;
+  const pr=document.getElementById('bc-preview');
+  if(!v){pr.innerHTML='';return;}
+  pr.innerHTML='<svg id="bc-modal-svg"></svg>';
+  try{JsBarcode('#bc-modal-svg',v,{format:'CODE128',width:2,height:55,displayValue:true,margin:4});}catch{}
+}
+
+async function saveBarcode(){
+  const v=document.getElementById('bc-val').value.trim();
+  if(!v){toast('Введите штрихкод','error');return;}
+  try{
+    await sbUpdate('products',editBcId,{barcode:v});
+    const p=products.find(x=>x.id===editBcId);if(p)p.barcode=v;
+    closeModal('modal-barcode');renderBarcodes();toast('✓ Штрихкод обновлён');
+  }catch(e){toast('Ошибка: '+e.message,'error');}
+}
+
+function printBarcode(id){
+  const p=products.find(x=>x.id===id);if(!p)return;
+  const w=window.open('','_blank','width=400,height=280');
+  w.document.write(`<!DOCTYPE html><html><head><style>body{font-family:Arial;text-align:center;padding:20px;background:#fff}svg{max-width:100%}.name{font-size:13px;font-weight:bold;margin-bottom:4px}.info{font-size:11px;color:#666;margin-bottom:4px}.price{font-size:14px;font-weight:bold;color:#8B6508}</style></head><body>
+    <div class="name">${p.name}</div><div class="info">${MATS[p.material]||p.material} · ${p.purity}° · ${p.weight}г</div><div class="price">${fmt(p.sale_price)}</div>
+    <svg id="bcp"></svg>
+    <script src="https://unpkg.com/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"><\/script>
+    <script>window.onload=()=>{JsBarcode('#bcp','${p.barcode}',{format:'CODE128',width:2,height:55,displayValue:true});window.print()}<\/script>
+  </body></html>`);
+}
+
+// ══════════════════════════════════════════════════════════════
+// ANALYTICS
+// ══════════════════════════════════════════════════════════════
+function setPeriod(el,p){analyticsPeriod=p;document.querySelectorAll('.period-tab').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderAnalytics();}
+
+function renderAnalytics(){
+  const now=new Date();let from;
+  if(analyticsPeriod==='week') from=new Date(now-7*864e5);
+  else if(analyticsPeriod==='month') from=new Date(now.getFullYear(),now.getMonth(),1);
+  else if(analyticsPeriod==='quarter') from=new Date(now.getFullYear(),Math.floor(now.getMonth()/3)*3,1);
+  else from=new Date(now.getFullYear(),0,1);
+  const fi=from.toISOString();
+  const ps=sales.filter(s=>s.date>=fi);
+  const rev=ps.reduce((a,s)=>a+(s.sale_price||0),0);
+  const profit=ps.reduce((a,s)=>a+(s.profit||0),0);
+  const margin=rev>0?Math.round(profit/rev*100):0;
+  const pp=purchases.filter(p=>p.date>=fi);
+  const purTot=pp.reduce((a,p)=>a+(p.total_price||0),0);
+  const byCat={};ps.forEach(s=>{const p=products.find(x=>x.id===s.product_id)||{};const c=p.category||'other';if(!byCat[c])byCat[c]={n:0,rev:0};byCat[c].n++;byCat[c].rev+=s.sale_price||0;});
+  const byMat={gold:{n:0,w:0,rev:0},silver:{n:0,w:0,rev:0}};
+  ps.forEach(s=>{const p=products.find(x=>x.id===s.product_id)||{};const m=p.material||'gold';if(byMat[m]){byMat[m].n++;byMat[m].w+=p.weight||0;byMat[m].rev+=s.sale_price||0;}});
+
+  document.getElementById('analytics-content').innerHTML=`
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-lbl">Выручка</div><div class="stat-val" style="font-size:20px">${fmt(rev)}</div><div class="stat-sub">${ps.length} продаж</div></div>
+      <div class="stat-card"><div class="stat-lbl">Прибыль</div><div class="stat-val" style="font-size:20px;color:var(--green)">${fmt(profit)}</div><div class="stat-sub">Маржа ${margin}%</div></div>
+      <div class="stat-card"><div class="stat-lbl">Закуп металла</div><div class="stat-val" style="font-size:20px;color:#C0392B">${fmt(purTot)}</div><div class="stat-sub">${pp.length} операций</div></div>
+      <div class="stat-card"><div class="stat-lbl">Баланс</div><div class="stat-val" style="font-size:20px;color:${rev-purTot>=0?'var(--green)':'#C0392B'}">${fmt(rev-purTot)}</div><div class="stat-sub">Выручка − закуп</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-title">По категориям</div>
+        ${Object.entries(byCat).sort((a,b)=>b[1].rev-a[1].rev).map(([cat,d])=>`
+          <div class="bar-row"><span class="bar-lbl">${(CATS[cat]||cat).replace(/[^\w\sА-яЁё]/gu,'').trim()}</span><div class="bar-track"><div class="bar-fill" style="width:${rev>0?Math.round(d.rev/rev*100):0}%"></div></div><span class="bar-val">${d.n} шт · ${Math.round(d.rev/1000)}к</span></div>`).join('')}
+        ${Object.keys(byCat).length===0?'<div class="empty" style="padding:16px"><div class="empty-sub">Нет данных</div></div>':''}
+      </div>
+      <div class="card">
+        <div class="card-title">По металлам</div>
+        ${['gold','silver'].map(m=>`
+          <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border-lt)">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span>${MATS[m]}</span><strong style="color:var(--gold-deep)">${fmt(byMat[m].rev)}</strong></div>
+            <div style="font-size:12px;color:var(--muted)">${byMat[m].n} продаж · ${byMat[m].w.toFixed(2)} г</div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Детализация продаж за период</div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Изделие</th><th>Металл</th><th>Вес</th><th>Цена продажи</th><th>Прибыль</th><th>Дата</th></tr></thead>
+        <tbody>${ps.slice(0,30).map(s=>{const p=products.find(x=>x.id===s.product_id)||{};return`<tr>
+          <td style="font-weight:500">${esc(p.name||'—')}</td>
+          <td>${p.material?matBadge(p.material):''}</td>
+          <td>${fmtG(p.weight||0)}</td>
+          <td style="color:var(--gold-deep)">${fmt(s.sale_price)}</td>
+          <td style="color:var(--green)">${fmt(s.profit)}</td>
+          <td style="color:var(--muted)">${s.date?s.date.slice(0,10):''}</td>
+        </tr>`}).join('')}
+        ${ps.length===0?'<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--muted)">Нет продаж за выбранный период</td></tr>':''}</tbody>
+      </table></div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════
+async function init(){
+  // Init purity options
+  updatePurityOpts('prod');
+  updatePurityOpts('pur');
+
+  // Check session
+  const saved=sessionStorage.getItem('jewel_user');
+  if(saved){
+    try{currentUser=JSON.parse(saved);}catch{}
+  }
+  if(currentUser){
+    await showApp();
+  }
+  document.getElementById('top-date').textContent=new Date().toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'});
+}
+
+init();
+</script>
+</body>
+</html>
